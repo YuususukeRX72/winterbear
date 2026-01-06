@@ -128,7 +128,7 @@ button:disabled {
 
 <h1>🐻 くまさんの ふゆごもり</h1>
 
-<img id="bear" src="img/bear_normal.png" alt="くま">
+<img id="bear" src="bear_normal.png" alt="くま">
 
 <div class="box">
   <p>🍎 脂肪: <span id="fat">30</span></p>
@@ -149,7 +149,7 @@ button:disabled {
 </div>
 
 <div id="ending">
-  <img id="end_bear" src="img/bear_clear.png" alt="くま">
+  <img id="end_bear" src="bear_clear.png" alt="くま">
   <h2 id="endingTitle">🌸 春がきたよ！ 🌸</h2>
   <p id="endingMessage">くまさんは元気に冬をこしました</p>
   <p id="scoreLine">
@@ -181,18 +181,18 @@ function updateBearFace() {
   const bear = document.getElementById("bear");
 
   if (gameOver) {
-    bear.src = "img/bear_frozen.png";
+    bear.src = "bear_frozen.png";
     return;
   }
 
   if (sleeping) {
-    bear.src = "img/bear_sleep.png";
+    bear.src = "bear_sleep.png";
   } else if (fat < 30 || hp < 30) {
-    bear.src = "img/bear_bad.png";
+    bear.src = "bear_bad.png";
   } else if (fat < 50 || hp < 50) {
-    bear.src = "img/bear_ok.png";
+    bear.src = "bear_ok.png";
   } else {
-    bear.src = "img/bear_normal.png";
+    bear.src = "bear_normal.png";
   }
 }
 
@@ -258,7 +258,7 @@ function hibernate() {
 
 	  document.getElementById("message").textContent ="🧊 さむすぎて うごけない…";
 	  
-	  document.getElementById("end_bear").src = "img/bear_frozen.png";
+	  document.getElementById("end_bear").src = "bear_frozen.png";
 
       document.querySelectorAll(".game-btn").forEach(b => b.disabled = true);
 
@@ -298,7 +298,7 @@ function restart() {
 
   document.getElementById("endingTitle").textContent = "🌸 春がきたよ！ 🌸";
   document.getElementById("endingMessage").textContent ="くまさんは元気に冬をこしました";
-  document.getElementById("end_bear").src = "img/bear_clear.png";
+  document.getElementById("end_bear").src = "bear_clear.png";
 
   document.getElementById("message").textContent = "冬にそなえよう！";
   document.getElementById("sleepBtn").disabled = true;
