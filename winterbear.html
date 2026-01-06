@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>くまさんの ふゆごもり</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#e0f4ff">
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "Rounded Mplus 1c", sans-serif;
+  background: #e0f4ff;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.snow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(2px 2px at 20% 10%, #fff, transparent),
+    radial-gradient(3px 3px at 80% 20%, #fff, transparent),
+    radial-gradient(2px 2px at 40% 30%, #fff, transparent),
+    radial-gradient(3px 3px at 60% 50%, #fff, transparent);
+  animation: snow 10s linear infinite;
+  z-index: 0;
+}
+
+.snow.heavy {
+  animation-duration: 6s;
+}
+
+@keyframes snow {
+  from { background-position: 0 0; }
+  to { background-position: 0 100vh; }
+}
+
+body > *:not(.snow) {
+  position: relative;
+  z-index: 1;
+}
+
+#bear {
+  width: 30%;
+  margin: 20px auto;
+  animation: bounce 2s infinite;
+}
+
+#end_bear {
+  width: 80%;
+  margin: 20px auto;
+}
+
+.sleeping {
+  animation: sleep 4s infinite;
+}
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes sleep {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.box {
+  background: #fff;
+  border-radius: 20px;
+  padding: 15px;
+  margin: 10px;
+  width: 90%;
+  max-width: 400px;
+}
+
+button {
+  font-size: 18px;
+  padding: 12px 20px;
+  margin: 5px;
+  border-radius: 20px;
+  border: none;
+  background: #ffcc80;
+  min-width: 160px;
+}
+
+button:disabled {
+  background: #ccc;
+}
+
+#ending {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff0f5;
+  display: none;
+  padding-top: 100px;
+  z-index: 10;
+  animation: fadeIn 2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+</style>
+</head>
+
+<body>
+<div class="snow"></div>
+
+<h1>🐻 くまさんの ふゆごもり</h1>
+
+<img id="bear" src="img/bear_normal.png" alt="くま">
+
+<div class="box">
+  <p>🍎 脂肪: <span id="fat">30</span></p>
+  <p>💖 体力: <span id="hp">30</span></p>
+  <p>🍂 残り日数: <span id="days">10</span></p>
+  <p>🏆 スコア: <span id="score">0</span></p>
+  <p>⭐ ハイスコア: <span id="highScore">0</span></p>
+
+  <button id="gatherBtn" class="game-btn" onclick="gather()">食べ物をあつめる</button>
+  <button id="restBtn" class="game-btn" onclick="rest()">休む</button>
+</div>
+
+<div class="box">
+  <p id="message">冬にそなえよう！</p>
+  <button id="sleepBtn" class="game-btn" id="sleepBtn" onclick="hibernate()" >
+    冬眠する
+  </button>
+</div>
+
+<div id="ending">
+  <img id="end_bear" src="img/bear_clear.png" alt="くま">
+  <h2 id="endingTitle">🌸 春がきたよ！ 🌸</h2>
+  <p id="endingMessage">くまさんは元気に冬をこしました</p>
+  <p id="scoreLine">
+    🏆 最終スコア: <span id="finalScore"></span>
+  </p>
+  <button class="ending-btn" onclick="restart()">もう一回あそぶ</button>
+</div>
+
+<audio id="seTap" src="sound/tap.mp3"></audio>
+<audio id="seSleep" src="sound/sleep.mp3"></audio>
+<audio id="seClear" src="sound/clear.mp3"></audio>
+
+<script>
+let fat = 30;
+let hp = 30;
+let days = 10;
+let score = 0;
+let highScore = 0;
+let sleeping = false;
+let gameOver = false;
+
+function playSE(id) {
+  const se = document.getElementById(id);
+  se.currentTime = 0;
+  se.play();
+}
+
+function updateBearFace() {
+  const bear = document.getElementById("bear");
+
+  if (gameOver) {
+    bear.src = "img/bear_frozen.png";
+    return;
+  }
+
+  if (sleeping) {
+    bear.src = "img/bear_sleep.png";
+  } else if (fat < 30 || hp < 30) {
+    bear.src = "img/bear_bad.png";
+  } else if (fat < 50 || hp < 50) {
+    bear.src = "img/bear_ok.png";
+  } else {
+    bear.src = "img/bear_normal.png";
+  }
+}
+
+function update() {
+  fat = Math.min(fat, 100);
+  hp = Math.min(hp, 100);
+  score = fat * 10 + hp * 5;
+
+  document.getElementById("fat").textContent = fat;
+  document.getElementById("hp").textContent = hp;
+  document.getElementById("days").textContent = days;
+  document.getElementById("score").textContent = score;
+  document.getElementById("highScore").textContent = highScore;
+
+  // 日数が0になったら準備行動を止める
+  if (days <= 0 && !sleeping && !gameOver) {
+    document.getElementById("gatherBtn").disabled = true;
+    document.getElementById("restBtn").disabled = true;
+    document.getElementById("sleepBtn").disabled = false;
+  }
+
+  updateBearFace();
+
+  if (days <= 0 && !sleeping) {
+    document.getElementById("sleepBtn").disabled = false;
+    document.getElementById("message").textContent = "❄️ 冬がきた！冬眠しよう";
+  }
+}
+
+function gather() {
+  
+  playSE("seTap");
+  fat += 10;
+  hp -= 5;
+  days--;
+  document.getElementById("message").textContent = "🍎 食べ物をあつめた！";
+  update();
+}
+
+function rest() {
+  playSE("seTap");
+  hp += 10;
+  days--;
+  document.getElementById("message").textContent = "😴 ひとやすみ…";
+  update();
+}
+
+function hibernate() {
+  playSE("seSleep");
+  sleeping = true;
+  document.querySelector(".snow").classList.add("heavy");
+  document.getElementById("bear").classList.add("sleeping");
+  document.querySelectorAll(".game-btn").forEach(b => b.disabled = true);
+  document.getElementById("message").textContent = "💤 すやすや…";
+
+  const timer = setInterval(() => {
+    fat -= Math.floor(Math.random() * 8 + 3);
+    update();
+
+	if (fat <= 0) {
+	  clearInterval(timer);
+	  gameOver = true;
+
+	  document.getElementById("message").textContent ="🧊 さむすぎて うごけない…";
+	  
+	  document.getElementById("end_bear").src = "img/bear_frozen.png";
+
+      document.querySelectorAll(".game-btn").forEach(b => b.disabled = true);
+
+	  updateBearFace();
+	  gameOverShow();
+	}
+	
+    if (fat > 0 && Math.random() < 0.2) {
+      clearInterval(timer);
+      gameClear();
+    }
+  }, 1000);
+}
+
+function gameClear() {
+  playSE("seClear");
+
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("hibernationHighScore", highScore);
+  }
+
+  document.getElementById("finalScore").textContent = score;
+  document.getElementById("ending").style.display = "block";
+}
+
+function restart() {
+  fat = 30;
+  hp = 30;
+  days = 10;
+  score = 0;
+  sleeping = false;
+  gameOver = false;
+
+  document.getElementById("ending").style.display = "none";
+  document.getElementById("scoreLine").style.display = "block";
+
+  document.getElementById("endingTitle").textContent = "🌸 春がきたよ！ 🌸";
+  document.getElementById("endingMessage").textContent ="くまさんは元気に冬をこしました";
+  document.getElementById("end_bear").src = "img/bear_clear.png";
+
+  document.getElementById("message").textContent = "冬にそなえよう！";
+  document.getElementById("sleepBtn").disabled = true;
+
+  document.getElementById("bear").classList.remove("sleeping");
+  document.querySelector(".snow").classList.remove("heavy");
+
+  document.querySelectorAll(".game-btn").forEach(b => b.disabled = false);
+  update();
+}
+
+function loadHighScore() {
+  const saved = localStorage.getItem("hibernationHighScore");
+  highScore = saved ? Number(saved) : 0;
+}
+
+function gameOverShow() {
+  document.getElementById("endingTitle").textContent = "🧊 さむすぎて うごけない…";
+  document.getElementById("endingMessage").textContent = "くまさんは冬をこせなかった…";
+
+  document.getElementById("scoreLine").style.display = "none";
+
+  document.getElementById("ending").style.display = "block";
+}
+
+
+loadHighScore();
+update();
+
+// 疑似フルスクリーン
+document.body.addEventListener("click", () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(()=>{});
+  }
+}, { once: true });
+</script>
+
+</body>
+</html>
